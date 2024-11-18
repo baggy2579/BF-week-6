@@ -1,0 +1,67 @@
+---
+title: 'Assignment 6 #regression'
+author: "Alfazkhan"
+date: "2024-11-17"
+output: html_document
+---
+
+```{r}
+# Load necessary libraries
+library(readxl)
+library(ggplot2)
+library(tidyr)
+
+# Import the dataset
+data <- read_excel("C:/Users/Alfaz Khan/OneDrive/Desktop/RUTGERS/Business Forecasting/Week 3/Job Openings and Labor Turnover Survey.xlsx")
+
+# Reshape data from wide format to long format
+data_long <- pivot_longer(data, cols = Jan:Dec, names_to = "Month", values_to = "Hires")
+
+# Convert Month names to numeric
+data_long$Month <- match(data_long$Month, month.abb)
+
+# Create a time series object
+data_long$Time <- as.numeric(data_long$Years) + (data_long$Month - 1) / 12  # Convert Year and Month to a numeric time variable
+
+# Scatter plot of Job Hires Over Time
+plot(data_long$Time, data_long$Hires, pch = 19, main = "Job Hires Over Time", xlab = "Time", ylab = "Hires")
+# Analysis: The scatter plot shows the trend in job hires over time. Look for any visible patterns,
+# such as linear growth or seasonality. If seasonality is present, it will indicate repetitive cycles.
+
+# Perform Linear Regression
+lm_model <- lm(Hires ~ Time, data = data_long)
+abline(lm_model, col = "red", lwd = 2)
+# Analysis: The regression line is overlaid on the scatter plot to show the linear relationship between time and job hires. A strong upward or downward slope indicates a trend.
+
+# Display Regression Summary
+summary_output <- summary(lm_model)
+print(summary_output)
+# Analysis: 
+# - The regression summary provides coefficients, R-squared, and p-values.
+# - A significant p-value (< 0.05) indicates that time is a strong predictor of job hires.
+# - Adjusted R-squared reveals how much of the variability in job hires is explained by the model.
+# - The slope (Time coefficient) tells the rate of change in hires over time.
+
+# Residual Analysis
+par(mfrow = c(2, 2))  # Set up a 2x2 plotting space
+plot(lm_model)  # Diagnostic plots
+# Analysis:
+# - Residuals vs. Fitted: Checks for linearity; no clear pattern should exist.
+# - Normal Q-Q: Checks if residuals are normally distributed; points should align with the diagonal.
+# - Scale-Location: Tests for homoscedasticity; residual variance should be constant.
+# - Residuals vs. Leverage: Identifies influential data points; no points should strongly influence the model.
+
+# Histogram of residuals
+hist(residuals(lm_model), main = "Histogram of Residuals", xlab = "Residuals")
+# Analysis: The histogram of residuals checks for normality. Ideally, the residuals should follow a bell-shaped curve, which supports the assumption of normally distributed errors.
+
+# Residuals vs Fitted Values
+plot(lm_model$fitted.values, residuals(lm_model), main = "Residuals vs Fitted", 
+     xlab = "Fitted Values", ylab = "Residuals", pch = 19, col = "blue")
+abline(h = 0, col = "red", lwd = 2)
+# Analysis: This plot identifies patterns in residuals. A random scatter suggests the model meets the linearity assumption. If a clear pattern exists, consider transforming variables or using non-linear models.
+
+# Recommendations:
+# 1. If seasonality is visible, decompose the time series or try ARIMA for better forecasts.
+# 2. Review residual analysis carefully; violations may suggest improvements like using transformations.
+# 3. Explore adding additional predictors (if applicable) to improve model fit.
